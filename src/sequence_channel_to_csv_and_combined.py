@@ -73,7 +73,7 @@ def be_u32(b: bytes, off: int) -> int:
 
 
 def be_f64(b: bytes, off: int) -> float:
-    return struct.unpack(">d", b[off:off + 8])[0]
+    return struct.unpack(">d", b[off:off + 8])[0] # ">" = big-endian  , "d" = double precision 
 
 
 def be_i32_from_words(hi_word: int, lo_word: int) -> int:

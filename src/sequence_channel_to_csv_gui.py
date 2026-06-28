@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "sequence_channel_to_csv_and_combined_v20.py"
+DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "sequence_channel_to_csv_and_combined.py"
 
 
 def be_u32(b: bytes, off: int) -> int:
@@ -131,7 +131,7 @@ class App:
         self.export_csv_var = tk.BooleanVar(value=False)
         self.export_summary_plot_var = tk.BooleanVar(value=True)
         self.export_detail_plots_var = tk.BooleanVar(value=False)
-        self.show_summary_plot_var = tk.BooleanVar(value=False)
+        self.show_summary_plot_var = tk.BooleanVar(value=True)
         self.cli_script_var = tk.StringVar(value=str(DEFAULT_CLI_SCRIPT))
 
         self._build_ui()

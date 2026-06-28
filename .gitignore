@@ -1,0 +1,9 @@
+# personal notes
+NOTES.txt 
+TODO.txt
+
+# Virtual Env 
+Pipfile*
+
+# gitignore
+!.gitignore
