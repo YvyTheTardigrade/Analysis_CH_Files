@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import CH_file_parser as ch
 import folder_helpers as folder
 
@@ -13,7 +15,7 @@ from tkinter.scrolledtext import ScrolledText
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "sequence_channel_to_csv_and_combined.py"
+DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "Main_Process.py" #"sequence_channel_to_csv_and_combined.py" #  
 
 
 
