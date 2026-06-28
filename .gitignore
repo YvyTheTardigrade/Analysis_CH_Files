@@ -5,5 +5,10 @@ TODO.txt
 # Virtual Env 
 Pipfile*
 
+
+# output folder 
+Analysis
+
+
 # gitignore
 !.gitignore
