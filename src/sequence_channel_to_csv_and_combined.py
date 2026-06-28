@@ -36,6 +36,7 @@ def get_matplotlib_pyplot():
 
 def open_file_with_default_app(path: Path) -> None:
     """Open a file with the operating-system default application."""
+    # used for plot visualisation
     try:
         if sys.platform == "darwin":
             subprocess.Popen(["open", str(path)])
@@ -46,13 +47,13 @@ def open_file_with_default_app(path: Path) -> None:
     except Exception as exc:
         print(f"[WARNING] Could not open summary plot automatically: {exc}")
 
-
+"""
 AMINO_ACIDS: Set[str] = {
     "Ala", "Arg", "Asn", "Asp", "Cys", "Gln", "Glu", "Gly",
     "His", "Ile", "Leu", "Lys", "Met", "Phe", "Pro", "Ser",
     "Thr", "Trp", "Tyr", "Val",
 }
-
+"""
 
 PeakRecord = Dict[str, object]
 
