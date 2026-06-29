@@ -1,4 +1,4 @@
-from binary_helpers import *
+from .binary_helpers import *
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
