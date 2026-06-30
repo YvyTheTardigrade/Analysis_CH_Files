@@ -32,7 +32,7 @@ def extract_header(data: bytes) -> Dict[str, Any]:
 # ---------------------------------------------------------------------
 # Signal decoding
 # ---------------------------------------------------------------------
-def decode_signal_from_offset(data: bytes, start: int) -> List[int]:
+def decode_signal_from_offset_bad(data: bytes, start: int) -> List[int]:
     values: List[int] = []
     current = 0
     i = start
@@ -53,6 +53,48 @@ def decode_signal_from_offset(data: bytes, start: int) -> List[int]:
             current += word
             values.append(current)
             i += 2
+
+    return values
+
+def decode_signal_from_offset(data: bytes, start: int) -> List[int]:
+    values: List[int] = []
+    current = 0
+    i = start
+    n = len(data)
+    
+
+
+    while i + 1 < n:
+
+        # ---------- SEGMENT HEADER ---------- # 
+        if data[i] == 0x10 :
+            seg_length = data[i + 1]
+            i += 2 
+            if seg_length == 0 :
+                break 
+
+            
+            # ------- SEGMENT BODY ------- #
+            for _ in range(seg_length) :
+
+
+                word = be_i16(data, i)
+
+                if word == -32768:
+                    if i + 5 >= n:
+                        break
+                    hi = be_u16(data, i + 2)
+                    lo = be_u16(data, i + 4)
+                    current = be_i32_from_words(hi, lo)
+                    values.append(current)
+                    i += 6
+                else:
+                    current += word
+                    values.append(current)
+                    i += 2
+
+        else :
+            break
 
     return values
 

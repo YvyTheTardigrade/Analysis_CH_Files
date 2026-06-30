@@ -8,7 +8,7 @@ import write_ch as wch
 
 # ------------------------- CREATING DUMMY .CH FILES ------------------------- # 
 
-t1 = np.linspace(0, 12, 2400)  
+t1 = np.linspace(0, 12, 2400) # times in minutes 
 values1  = np.sin(2 * np.pi * t1) * 500   # mAU
 true_integral_1 = 0
 
@@ -27,7 +27,7 @@ params1 = wch.write_ch(
 )
 
 
-t2 = np.linspace(0, 11.5, 2400)  
+t2 = np.linspace(0, 11.5, 2400)  # times in minutes
 values2  = np.sin(2 * np.pi * t2) * 500   # mAU
 true_integral_2 = - 1/(2 * np.pi) * 500 * (np.cos(2 * np.pi * t2[-1]) - np.cos(2 * np.pi * t2[0]))
 
@@ -130,7 +130,7 @@ def test_build_time_axis(n_points, total_time_s, time_start_s, first_time_ms, la
 def test_read_ch_data(filename, off, nb_pts, duration, time_start_s, use_header_time, expected_time, expected_signal):
     ch_file = Path(filename)
     _, t, _, signal = src.CH_file_parser.read_ch_data(ch_file, off, nb_pts, duration, time_start_s, use_header_time)
-    assert np.allclose(t, expected_time)
+    assert np.allclose(t, expected_time*60.)  # expected times is given in minutes !!!
     assert np.allclose(signal, expected_signal)
 
 
