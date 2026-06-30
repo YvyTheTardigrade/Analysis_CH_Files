@@ -27,7 +27,7 @@ class App:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Sequence Channel to CSV - GUI v20 (English)")
-        self.root.geometry("980x760")
+        self.root.geometry("1000x900")
 
         #self.process: subprocess.Popen[str] | None = None
         self.process: mp.Process | None = None
@@ -45,6 +45,9 @@ class App:
         self.export_detail_plots_var = tk.BooleanVar(value=False)
         self.show_summary_plot_var = tk.BooleanVar(value=True)
         self.cli_script_var = tk.StringVar(value=str(DEFAULT_CLI_SCRIPT))
+
+        # --- Etat du panneau "Advanced parameters" ---
+        self.advanced_visible = False
 
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -77,35 +80,79 @@ class App:
         subtitle.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 10))
 
         row = 2
-        row = self._add_file_row(container, row, "CLI script", self.cli_script_var, self._browse_cli_script, file_mode=True)
+        #row = self._add_file_row(container, row, "CLI script", self.cli_script_var, self._browse_cli_script, file_mode=True)
         row = self._add_file_row(container, row, "Parent input directory", self.parent_dir_var, self._browse_parent_dir)
         row = self._add_labeled_entry(container, row, "Channel filename", self.channel_file_var)
+        row = self._add_file_row(container, row, "Output directory", self.output_dir_var, self._browse_output_dir)
 
-        ttk.Label(container, text="Selected .ch preview file").grid(row=row, column=0, sticky="w", pady=4, padx=(0, 8))
-        preview_row = ttk.Frame(container)
-        preview_row.grid(row=row, column=1, columnspan=2, sticky="ew", pady=4)
+        # ------------------------------------------------------------------
+        # Bouton bascule pour afficher/masquer les paramètres avancés
+        # ------------------------------------------------------------------
+        self.advanced_toggle_button = ttk.Button(
+            container, text="Show advanced parameters \u25BC", command=self._toggle_advanced_panel
+        )
+        self.advanced_toggle_button.grid(row=row, column=0, columnspan=3, sticky="w", pady=(4, 8))
+        row += 1
+
+        # Ligne où le panneau avancé sera grid/grid_remove (toujours réservée)
+        self.advanced_row = row
+        row += 1
+
+        # ------------------------------------------------------------------
+        # Panneau "Advanced parameters" (caché par défaut)
+        # Contient : Selected .ch preview file, Header preview,
+        #            Combined/Summary CSV file name, Command preview
+        # ------------------------------------------------------------------
+        self.advanced_frame = ttk.LabelFrame(container, text="Advanced parameters")
+        self.advanced_frame.columnconfigure(1, weight=1)
+
+        adv_row = 0
+
+        ttk.Label(self.advanced_frame, text="Selected .ch preview file").grid(
+            row=adv_row, column=0, sticky="w", pady=4, padx=(8, 8)
+        )
+        preview_row = ttk.Frame(self.advanced_frame)
+        preview_row.grid(row=adv_row, column=1, columnspan=2, sticky="ew", pady=4, padx=(0, 8))
         preview_row.columnconfigure(0, weight=1)
         self.preview_file_combo = ttk.Combobox(preview_row, textvariable=self.preview_file_var, state="normal")
         self.preview_file_combo.grid(row=0, column=0, sticky="ew")
         self.preview_file_combo.bind("<<ComboboxSelected>>", lambda _event: self.refresh_header_preview())
         ttk.Button(preview_row, text="Browse file...", command=self._browse_preview_file).grid(row=0, column=1, padx=(8, 0))
         ttk.Button(preview_row, text="Refresh list", command=self.refresh_preview_file_list).grid(row=0, column=2, padx=(8, 0))
-        row += 1
+        adv_row += 1
 
-        ttk.Label(container, text="Header preview").grid(row=row, column=0, sticky="nw", pady=4, padx=(0, 8))
-        self.header_preview_box = ScrolledText(container, height=3, wrap="word")
-        self.header_preview_box.grid(row=row, column=1, columnspan=2, sticky="ew", pady=4)
+        ttk.Label(self.advanced_frame, text="Header preview").grid(
+            row=adv_row, column=0, sticky="nw", pady=4, padx=(8, 8)
+        )
+        self.header_preview_box = ScrolledText(self.advanced_frame, height=3, wrap="word")
+        self.header_preview_box.grid(row=adv_row, column=1, columnspan=2, sticky="ew", pady=4, padx=(0, 8))
         self.header_preview_box.configure(state="disabled")
-        row += 1
+        adv_row += 1
 
-        row = self._add_file_row(container, row, "Output directory", self.output_dir_var, self._browse_output_dir)
-        row = self._add_labeled_entry(container, row, "Combined CSV file name", self.combined_name_var)
-        row = self._add_labeled_entry(container, row, "Summary CSV file name", self.summary_name_var)
+        adv_row = self._add_labeled_entry(self.advanced_frame, adv_row, "Combined CSV file name", self.combined_name_var, left_pad=8, right_pad=8)
+        adv_row = self._add_labeled_entry(self.advanced_frame, adv_row, "Summary CSV file name", self.summary_name_var, left_pad=8, right_pad=8)
 
-        ttk.Label(container, text="Output point count").grid(row=row, column=0, sticky="w", pady=4, padx=(0, 8))
-        ttk.Entry(container, textvariable=self.points_var, state="readonly").grid(row=row, column=1, sticky="ew", pady=4)
-        ttk.Button(container, text="Refresh from header", command=self.refresh_header_preview).grid(row=row, column=2, sticky="ew", pady=4, padx=(8, 0))
-        row += 1
+        ttk.Label(self.advanced_frame, text="Output point count").grid(
+            row=adv_row, column=0, sticky="w", pady=4, padx=(8, 8)
+        )
+        ttk.Entry(self.advanced_frame, textvariable=self.points_var, state="readonly").grid(
+            row=adv_row, column=1, sticky="ew", pady=4
+        )
+        ttk.Button(self.advanced_frame, text="Refresh from header", command=self.refresh_header_preview).grid(
+            row=adv_row, column=2, sticky="ew", pady=4, padx=(8, 8)
+        )
+        adv_row += 1
+
+        ttk.Label(self.advanced_frame, text="Command preview").grid(
+            row=adv_row, column=0, columnspan=3, sticky="w", padx=(8, 8)
+        )
+        adv_row += 1
+        self.command_preview = ScrolledText(self.advanced_frame, height=5, wrap="word")
+        self.command_preview.grid(row=adv_row, column=0, columnspan=3, sticky="nsew", pady=(0, 8), padx=8)
+        self.command_preview.configure(state="disabled")
+        adv_row += 1
+
+        # Le panneau avancé n'est PAS placé ici (pas de .grid) -> masqué par défaut
 
         options_frame = ttk.LabelFrame(container, text="Outputs")
         options_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(8, 8))
@@ -136,13 +183,6 @@ class App:
         ttk.Label(button_row, textvariable=self.status_var).grid(row=0, column=3, sticky="w")
         row += 1
 
-        ttk.Label(container, text="Command preview").grid(row=row, column=0, columnspan=3, sticky="w")
-        row += 1
-        self.command_preview = ScrolledText(container, height=5, wrap="word")
-        self.command_preview.grid(row=row, column=0, columnspan=3, sticky="nsew", pady=(0, 10))
-        self.command_preview.configure(state="disabled")
-        row += 1
-
         ttk.Label(container, text="Program output").grid(row=row, column=0, columnspan=3, sticky="w")
         row += 1
         self.output_box = ScrolledText(container, height=18, wrap="word")
@@ -151,6 +191,21 @@ class App:
 
         container.rowconfigure(row - 1, weight=1)
         self.update_command_preview()
+
+    def _toggle_advanced_panel(self) -> None:
+        """Affiche ou masque le panneau des paramètres avancés."""
+        self.advanced_visible = not self.advanced_visible
+        if self.advanced_visible:
+            self.advanced_frame.grid(
+                row=self.advanced_row, column=0, columnspan=3, sticky="ew", pady=(0, 8)
+            )
+            self.advanced_toggle_button.configure(text="Hide advanced parameters \u25B2")
+            # Rafraîchir les infos quand on ouvre le panneau
+            self.refresh_preview_file_list()
+            self.refresh_header_preview()
+        else:
+            self.advanced_frame.grid_remove()
+            self.advanced_toggle_button.configure(text="Show advanced parameters \u25BC")
 
     def _bind_updates(self) -> None:
         for variable in (
@@ -176,9 +231,17 @@ class App:
         self.refresh_preview_file_list()
         self.update_command_preview()
 
-    def _add_labeled_entry(self, parent: ttk.Frame, row: int, label: str, variable: tk.StringVar) -> int:
-        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", pady=4, padx=(0, 8))
-        ttk.Entry(parent, textvariable=variable).grid(row=row, column=1, columnspan=2, sticky="ew", pady=4)
+    def _add_labeled_entry(
+        self,
+        parent: ttk.Frame,
+        row: int,
+        label: str,
+        variable: tk.StringVar,
+        left_pad: int = 0,
+        right_pad: int = 0,
+    ) -> int:
+        ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", pady=4, padx=(left_pad, 8))
+        ttk.Entry(parent, textvariable=variable).grid(row=row, column=1, columnspan=2, sticky="ew", pady=4, padx=(0, right_pad))
         return row + 1
 
     def _add_file_row(self, parent: ttk.Frame, row: int, label: str, variable: tk.StringVar, browse_command, file_mode: bool = False) -> int:
@@ -187,14 +250,14 @@ class App:
         ttk.Button(parent, text="Browse...", command=browse_command).grid(row=row, column=2, sticky="ew", pady=4, padx=(8, 0))
         return row + 1
 
-    def _browse_cli_script(self) -> None:
-        path = filedialog.askopenfilename(
-            title="Select the CLI Python script",
-            filetypes=[("Python files", "*.py"), ("All files", "*.*")],
-            initialdir=str(SCRIPT_DIR),
-        )
-        if path:
-            self.cli_script_var.set(path)
+    #def _browse_cli_script(self) -> None:
+    #    path = filedialog.askopenfilename(
+    #        title="Select the CLI Python script",
+    #        filetypes=[("Python files", "*.py"), ("All files", "*.*")],
+    #        initialdir=str(SCRIPT_DIR),
+    #    )
+    #    if path:
+    #        self.cli_script_var.set(path)
 
     def _browse_parent_dir(self) -> None:
         path = filedialog.askdirectory(title="Select the parent input directory")
