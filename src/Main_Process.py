@@ -1,4 +1,4 @@
-import CH_file_parser as ch
+import src.CH_file_parser as ch
 import plot_helpers as plot
 from plot_helpers import PeakRecord
 import CSV_manager as csv

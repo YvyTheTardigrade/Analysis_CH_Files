@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import CH_file_parser as ch
+import src.CH_file_parser as ch
 import folder_helpers as folder
 
 from pathlib import Path

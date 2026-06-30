@@ -7,7 +7,7 @@ Pipfile*
 
 
 # output folder 
-Analysis
+example_data/Analysis/
 
 
 # gitignore

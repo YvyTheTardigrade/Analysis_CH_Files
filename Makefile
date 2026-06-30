@@ -1,6 +1,10 @@
 run:
-	python ./src/sequence_channel_to_csv_gui.py 
+	PYTHONPATH=. python src/GUI.py 
 
-test :
+
+test:
 	PYTHONPATH=. pytest	
+
+build:
+
 
