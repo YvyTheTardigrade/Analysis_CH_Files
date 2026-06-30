@@ -15,7 +15,7 @@ true_integral_1 = 0
 
 
 params1 = wch.write_ch(
-    path        = "DAD1A_test_1.ch",
+    path        = "./example_data/test_files/DAD1A_test_1.ch",
     times_min   = t1,
     values      = values1,
     units       = "mAU",
@@ -34,7 +34,7 @@ true_integral_2 = - 1/(2 * np.pi) * 500 * (np.cos(2 * np.pi * t2[-1]) - np.cos(2
 
 
 params2 = wch.write_ch(
-    path        = "DAD1A_test_2.ch",
+    path        = "./example_data/test_files/DAD1A_test_2.ch",
     times_min   = t2,
     values      = values2,
     units       = "mAU",
@@ -67,8 +67,8 @@ def test_calculate_integral_absolute_precision(time, signal, true_integral):
 
 
 @pytest.mark.parametrize("filename, time_start_s, use_header_time, true_integral", [
-    ("DAD1A_test_1.ch", 0, True, true_integral_1 ),
-    ("DAD1A_test_2.ch", 0, True, true_integral_2 )
+    ("./example_data/test_files/DAD1A_test_1.ch", 0, True, true_integral_1 ),
+    ("./example_data/test_files/DAD1A_test_2.ch", 0, True, true_integral_2 )
 ])
 def test_calculate_integral_in_context(filename, time_start_s, use_header_time, true_integral):
     ch_file = Path(filename)

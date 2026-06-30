@@ -9,6 +9,13 @@ Pipfile*
 # output folder 
 example_data/Analysis/
 
+# build folder 
+build/executable/*
+!build/executable/.gitkeep
+build/tmp/*
+!build/tmp/.gitkeep
+build/spec/*
+!build/spec/.gitkeep
 
 # gitignore
 !.gitignore

@@ -562,12 +562,3 @@ class App:
         self.output_box.see(tk.END)
 
 
-def main() -> int:
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

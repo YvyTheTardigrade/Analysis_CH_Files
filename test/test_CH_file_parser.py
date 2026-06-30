@@ -14,7 +14,7 @@ true_integral_1 = 0
 
 
 params1 = wch.write_ch(
-    path        = "DAD1A_test_1.ch",
+    path        = "./example_data/test_files/DAD1A_test_1.ch",
     times_min   = t1,
     values      = values1,
     units       = "mAU",
@@ -33,7 +33,7 @@ true_integral_2 = - 1/(2 * np.pi) * 500 * (np.cos(2 * np.pi * t2[-1]) - np.cos(2
 
 
 params2 = wch.write_ch(
-    path        = "DAD1A_test_2.ch",
+    path        = "./example_data/test_files/DAD1A_test_2.ch",
     times_min   = t2,
     values      = values2,
     units       = "mAU",
@@ -50,8 +50,8 @@ params2 = wch.write_ch(
 
 
 @pytest.mark.parametrize("filename,params", [
-    ("DAD1A_test_1.ch", params1),
-    ("DAD1A_test_2.ch", params2)
+    ("./example_data/test_files/DAD1A_test_1.ch", params1),
+    ("./example_data/test_files/DAD1A_test_2.ch", params2)
 ])
 def test_extract_header(filename, params):
     ch_file = Path(filename)
@@ -73,8 +73,8 @@ def test_extract_header(filename, params):
 
 
 @pytest.mark.parametrize("filename,values", [
-    ("DAD1A_test_1.ch", values1 ),
-    ("DAD1A_test_2.ch", values2 )
+    ("./example_data/test_files/DAD1A_test_1.ch", values1 ),
+    ("./example_data/test_files/DAD1A_test_2.ch", values2 )
 ])
 def test_decode_signal_from_offset(filename, values):
     ch_file = Path(filename)
@@ -124,8 +124,8 @@ def test_build_time_axis(n_points, total_time_s, time_start_s, first_time_ms, la
 
 
 @pytest.mark.parametrize("filename, off, nb_pts, duration, time_start_s, use_header_time, expected_time, expected_signal", [
-    ("DAD1A_test_1.ch", None, None, None, 0, True, t1, values1),
-    ("DAD1A_test_2.ch", None, None, None, 0, True, t2, values2)
+    ("./example_data/test_files/DAD1A_test_1.ch", None, None, None, 0, True, t1, values1),
+    ("./example_data/test_files/DAD1A_test_2.ch", None, None, None, 0, True, t2, values2)
 ])
 def test_read_ch_data(filename, off, nb_pts, duration, time_start_s, use_header_time, expected_time, expected_signal):
     ch_file = Path(filename)
