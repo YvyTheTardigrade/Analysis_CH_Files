@@ -1,3 +1,7 @@
+import multiprocessing as mp 
+import io
+import sys
+
 import src.CH_file_parser as ch
 import plot_helpers as plot
 from plot_helpers import PeakRecord
@@ -10,37 +14,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Scan a parent folder of Agilent .D folders, assign each Pip_x.D folder "
-            "to the immediately preceding numbered data folder, convert a chosen channel "
-            "file using the v12 .ch reader, write one signal CSV and one header CSV per target, "
-            "one combined CSV, one summary CSV, and optionally export PNG plots. "
-            "Labels use a sequential integer starting at 1 followed by the preceding data name. "
-            "The red plot line uses normalized peak integrals. Version 12.1 uses "
-            "fully harmonized English output names."
-        )
-    )
-    parser.add_argument("parent_dir", type=Path, help='Parent folder, e.g. "58mer 2026-02-18 09-40-30"')
-    parser.add_argument("channel_file", type=str, help='Channel file inside each Pip folder, e.g. "DAD1D.ch"')
-    parser.add_argument("--output-dir", type=Path, required=True, help="Directory where output CSV files will be stored")
-    parser.add_argument("--combined-name", type=str, default="combined.csv", help='Filename for the combined CSV in output-dir')
-    parser.add_argument("--summary-name", type=str, default="summary.csv", help='Filename for the summary CSV in output-dir')
-    parser.add_argument("--offset", type=int, default=None, help="Signal start offset in bytes. Default: header_size_bytes from the .ch file header")
-    parser.add_argument("--points", type=int, default=None, help="Optional manual output point count. Default: deduced automatically from the .ch header timing")
-    parser.add_argument("--run-time", type=float, default=None, help="Fallback total run time in seconds when header time is not used")
-    parser.add_argument("--time-start", type=float, default=0.0, help="Fallback start time in seconds when header time is not used")
-    parser.add_argument("--no-header-time", action="store_true", help="Use --run-time/--time-start instead of first_time_ms/last_time_ms from the .ch header (header times are converted from ms to s)")
-    parser.add_argument("--export-csv", action="store_true", help="Export CSV files into output-dir/csv")
-    parser.add_argument("--export-summary-plot", action="store_true", help="Export the summary plot to output-dir/plots/summary/combined_plot.png")
-    parser.add_argument("--export-detail-plots", action="store_true", help="Export all detail plots to output-dir/plots/detail")
-    parser.add_argument("--show-summary-plot", action="store_true", help="Open the summary plot at the end of the run using the system default image viewer")
-    args = parser.parse_args()
+def main(parent_dir : Path, channel_file : str, output_dir : Path,  offset : int | None, points : int | None, run_time : float | None, 
+         no_header_time : bool = True, export_csv : bool = True, export_summary_plot : bool = True, export_detail_plots : bool = True, 
+         show_summary_plot : bool = True, combined_name : str = "combined.csv" , summary_name : str = "summary.csv",time_start : float = 0.0) -> int:
 
-    parent_dir = args.parent_dir
-    output_dir = args.output_dir
-    channel_file = args.channel_file
+    parent_dir = parent_dir
+    output_dir = output_dir
+    channel_file = channel_file
 
     if not parent_dir.exists() or not parent_dir.is_dir():
         raise RuntimeError(f"Parent directory not found: {parent_dir}")
@@ -49,11 +29,11 @@ def main() -> int:
     csv_dir = output_dir / "csv"
     summary_plots_dir = output_dir / "plots" / "summary"
     detail_plots_dir = output_dir / "plots" / "detail"
-    if args.export_csv:
+    if export_csv:
         csv_dir.mkdir(parents=True, exist_ok=True)
-    if args.export_summary_plot:
+    if export_summary_plot:
         summary_plots_dir.mkdir(parents=True, exist_ok=True)
-    if args.export_detail_plots:
+    if export_detail_plots:
         detail_plots_dir.mkdir(parents=True, exist_ok=True)
 
     targets = folder.build_pip_targets(parent_dir)
@@ -61,26 +41,26 @@ def main() -> int:
         raise RuntimeError("No Pip_x.D folders with a preceding numbered data folder were found.")
 
     channel_stem = folder.sanitize_channel_stem(channel_file)
-    combined_csv = csv_dir / args.combined_name
-    summary_csv = csv_dir / args.summary_name
+    combined_csv = csv_dir / combined_name
+    summary_csv = csv_dir / summary_name
     combined_plot_path = summary_plots_dir / "combined_plot.png"
 
     print(f"Parent directory: {parent_dir}")
     print(f"Channel file:     {channel_file}")
     print(f"Output directory: {output_dir}")
-    if args.export_csv:
+    if export_csv:
         print(f"CSV directory:    {csv_dir}")
         print(f"Combined CSV:     {combined_csv}")
         print(f"Summary CSV:      {summary_csv}")
     else:
         print("CSV export:       disabled")
     print(f"Targets found:    {len(targets)}")
-    print(f"Header-based time axis: {'disabled' if args.no_header_time else 'enabled'}")
-    if args.export_summary_plot:
+    print(f"Header-based time axis: {'disabled' if no_header_time else 'enabled'}")
+    if export_summary_plot:
         print(f"Summary plot:     {combined_plot_path}")
-    if args.show_summary_plot:
+    if show_summary_plot:
         print("Show summary plot: enabled")
-    if args.export_detail_plots:
+    if export_detail_plots:
         print(f"Detail plots dir: {detail_plots_dir}")
     print()
 
@@ -106,16 +86,16 @@ def main() -> int:
         try:
             header, times, signal_raw, signal_scaled = ch.read_ch_data(
                 ch_file=ch_file,
-                offset=args.offset,
-                target_points=args.points,
-                run_time_s=args.run_time,
-                time_start_s=args.time_start,
-                use_header_time=not args.no_header_time,
+                offset=offset,
+                target_points=points,
+                run_time_s=run_time,
+                time_start_s=time_start,
+                use_header_time=not no_header_time,
             )
             point_indices = list(range(global_point_index, global_point_index + len(signal_raw)))
             total_integral = integrator.calculate_integral(times=times, signal=signal_raw)
 
-            if args.export_csv:
+            if export_csv:
                 csv.write_signal_csv(out_csv=signal_csv, times=times, signal_raw=signal_raw, signal_scaled=signal_scaled)
                 csv.write_header_csv(out_csv=header_csv, header=header)
 
@@ -170,39 +150,130 @@ def main() -> int:
             f"{float(peak['normalized_integral']):.9f}",
         ))
 
-    if args.export_csv:
+    if export_csv:
         csv.write_combined_csv(combined_csv=combined_csv, combined_rows=combined_rows)
         csv.write_summary_csv(summary_csv=summary_csv, summary_rows=summary_rows)
 
     combined_plot = None
     page_paths: List[Path] = []
-    if args.export_detail_plots and peak_records:
+    if export_detail_plots and peak_records:
         page_paths = plot.export_individual_subplot_pages(plots_dir=detail_plots_dir, channel_stem=channel_stem, peak_records=peak_records, rows=3, cols=2)
-    if args.export_summary_plot and peak_records:
+    if export_summary_plot and peak_records:
         combined_plot = combined_plot_path
         plot.export_combined_plot(out_png=combined_plot, combined_rows=combined_rows, peak_records=peak_records)
 
     print("Run summary")
     print(f"  Converted successfully: {ok}")
     print(f"  Failed:                 {fail}")
-    if args.export_csv:
+    if export_csv:
         print(f"  CSV directory:          {csv_dir}")
         print(f"  Combined CSV:           {combined_csv}")
         print(f"  Summary CSV:            {summary_csv}")
-    if args.export_detail_plots:
+    if export_detail_plots:
         print(f"  Detail plots directory: {detail_plots_dir}")
         for page_path in page_paths:
             print(f"  Individual plot page:   {page_path}")
-    if args.export_summary_plot and combined_plot is not None:
+    if export_summary_plot and combined_plot is not None:
         print(f"  Summary plot:           {combined_plot}")
-        if args.show_summary_plot:
+        if show_summary_plot:
             print("  Opening summary plot...")
             plot.open_file_with_default_app(combined_plot)
-    elif args.show_summary_plot:
+    elif show_summary_plot:
         print("  Summary plot was not opened because --export-summary-plot was not enabled or no peaks were processed.")
 
     return 0 if fail == 0 else 1
 
 
+
+
+
+
+
+def _worker_entrypoint(
+    stdout_queue: mp.Queue,
+    parent_dir: str,
+    channel_file: str,
+    output_dir: str,
+    points: int,
+    export_csv: bool,
+    export_summary_plot: bool,
+    export_detail_plots: bool,
+    show_summary_plot: bool,
+    combined_name: str,
+    summary_name: str,
+) -> None:
+    """
+    Tourne dans le sous-process. Redirige stdout/stderr vers la queue
+    pour que le process parent puisse les afficher en streaming, exactement
+    comme le faisait la lecture ligne par ligne de subprocess.stdout.
+    """
+ 
+    class _QueueWriter(io.TextIOBase):
+        def write(self, text: str) -> int:
+            if text:
+                stdout_queue.put(("line", text))
+            return len(text)
+ 
+        def flush(self) -> None:
+            pass
+ 
+    writer = _QueueWriter()
+    sys.stdout = writer
+    sys.stderr = writer  # stderr=STDOUT comme dans l'appel subprocess original
+ 
+    try:
+        main(
+            Path(parent_dir),
+            channel_file,
+            Path(output_dir),
+            None,
+            points,
+            None,
+            True,
+            export_csv,
+            export_summary_plot,
+            export_detail_plots,
+            show_summary_plot,
+            combined_name,
+            summary_name,
+            0.0,
+        )
+        stdout_queue.put(("done", 0))
+    except Exception as exc:
+        stdout_queue.put(("line", f"\nERROR: {exc}\n"))
+        stdout_queue.put(("done", -1))
+ 
+
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(
+        description=(
+            "Scan a parent folder of Agilent .D folders, assign each Pip_x.D folder "
+            "to the immediately preceding numbered data folder, convert a chosen channel "
+            "file using the v12 .ch reader, write one signal CSV and one header CSV per target, "
+            "one combined CSV, one summary CSV, and optionally export PNG plots. "
+            "Labels use a sequential integer starting at 1 followed by the preceding data name. "
+            "The red plot line uses normalized peak integrals. Version 12.1 uses "
+            "fully harmonized English output names."
+        )
+    )
+    parser.add_argument("parent_dir", type=Path, help='Parent folder, e.g. "58mer 2026-02-18 09-40-30"')
+    parser.add_argument("channel_file", type=str, help='Channel file inside each Pip folder, e.g. "DAD1D.ch"')
+    parser.add_argument("--output-dir", type=Path, required=True, help="Directory where output CSV files will be stored")
+    parser.add_argument("--combined-name", type=str, default="combined.csv", help='Filename for the combined CSV in output-dir')
+    parser.add_argument("--summary-name", type=str, default="summary.csv", help='Filename for the summary CSV in output-dir')
+    parser.add_argument("--offset", type=int, default=None, help="Signal start offset in bytes. Default: header_size_bytes from the .ch file header")
+    parser.add_argument("--points", type=int, default=None, help="Optional manual output point count. Default: deduced automatically from the .ch header timing")
+    parser.add_argument("--run-time", type=float, default=None, help="Fallback total run time in seconds when header time is not used")
+    parser.add_argument("--time-start", type=float, default=0.0, help="Fallback start time in seconds when header time is not used")
+    parser.add_argument("--no-header-time", action="store_true", help="Use --run-time/--time-start instead of first_time_ms/last_time_ms from the .ch header (header times are converted from ms to s)")
+    parser.add_argument("--export-csv", action="store_true", help="Export CSV files into output-dir/csv")
+    parser.add_argument("--export-summary-plot", action="store_true", help="Export the summary plot to output-dir/plots/summary/combined_plot.png")
+    parser.add_argument("--export-detail-plots", action="store_true", help="Export all detail plots to output-dir/plots/detail")
+    parser.add_argument("--show-summary-plot", action="store_true", help="Open the summary plot at the end of the run using the system default image viewer")
+    args = parser.parse_args()
+
+    raise SystemExit(main(args.parent_dir, args.channel_file, args.output_dir,  args.offset, args.points, args.run_time, 
+                          args.no_header_time, args.export_csv, args.export_summary_plot, args.export_detail_plots, 
+                          args.show_summary_plot, args.combined_name, args.summary_name, args.time_start))

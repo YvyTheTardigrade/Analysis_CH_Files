@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import src.CH_file_parser as ch
+import Main_Process
 import folder_helpers as folder
 
 from pathlib import Path
 
 
-import subprocess
+#import subprocess
 import sys
+
 import threading
+import multiprocessing as mp
+
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
@@ -25,7 +29,8 @@ class App:
         self.root.title("Sequence Channel to CSV - GUI v20 (English)")
         self.root.geometry("980x760")
 
-        self.process: subprocess.Popen[str] | None = None
+        #self.process: subprocess.Popen[str] | None = None
+        self.process: mp.Process | None = None
 
         self.parent_dir_var = tk.StringVar()
         self.channel_file_var = tk.StringVar(value="DAD1D.ch")
@@ -393,6 +398,7 @@ class App:
 
         return True
 
+    """
     def run_program(self) -> None:
         if not self.validate_inputs():
             return
@@ -412,9 +418,11 @@ class App:
 
         thread = threading.Thread(target=self._run_subprocess, args=(cmd,), daemon=True)
         thread.start()
+        
 
     def _run_subprocess(self, cmd: list[str]) -> None:
         try:
+            
             self.process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -427,6 +435,11 @@ class App:
                 self.root.after(0, self._append_output, line)
             return_code = self.process.wait()
             self.root.after(0, self._finish_run, return_code)
+            
+            #Main_Process.main(Path(self.parent_dir_var.get()), self.channel_file_var.get(), Path(self.output_dir_var.get()),  
+            #                  None, int(self.points_var.get().strip()), None, True, self.export_csv_var.get(), 
+            #                  self.export_summary_plot_var.get(), self.export_detail_plots_var.get(), self.show_summary_plot_var.get(), 
+            #                  self.combined_name_var.get(), self.summary_name_var.get(), 0.0)
         except Exception as exc:
             self.root.after(0, self._append_output, f"\nERROR: {exc}\n")
             self.root.after(0, self._finish_run, -1)
@@ -437,6 +450,89 @@ class App:
             self._append_output("\nTermination requested by the user.\n")
             self.status_var.set("Stopping...")
             self.stop_button.configure(state="disabled")
+    """
+
+    def run_program(self) -> None:
+        if not self.validate_inputs():
+            return
+        if self.process is not None:
+            messagebox.showinfo("Already running", "The program is already running.")
+            return
+ 
+        self.refresh_header_preview()
+        cmd = self._build_command()
+        self.output_box.delete("1.0", tk.END)
+        self._append_output("Running command:\n")
+        self._append_output(" ".join(self._quote_if_needed(part) for part in cmd) + "\n\n")
+ 
+        self.run_button.configure(state="disabled")
+        self.stop_button.configure(state="normal")
+        self.status_var.set("Running...")
+ 
+        # --- Lancement dans un sous-process (et non plus un sous-thread) ---
+        # On garde une queue pour récupérer stdout/stderr et le code de retour,
+        # et un objet "process" multiprocessing pour pouvoir le terminer.
+        self.stdout_queue: mp.Queue = mp.Queue()
+ 
+        points_text = self.points_var.get().strip()
+        points = int(points_text) if points_text.isdigit() else None
+ 
+        self.process = mp.Process(
+            target=Main_Process._worker_entrypoint,
+            args=(
+                self.stdout_queue,
+                self.parent_dir_var.get(),
+                self.channel_file_var.get(),
+                self.output_dir_var.get(),
+                points,
+                self.export_csv_var.get(),
+                self.export_summary_plot_var.get(),
+                self.export_detail_plots_var.get(),
+                self.show_summary_plot_var.get(),
+                self.combined_name_var.get(),
+                self.summary_name_var.get(),
+            ),
+            daemon=True,
+        )
+        self.process.start()
+ 
+        # Thread "léger" côté GUI : ne fait plus le travail lui-même,
+        # il se contente de relayer ce qui arrive dans la queue vers le GUI.
+        thread = threading.Thread(target=self._pump_queue, daemon=True)
+        thread.start()
+ 
+    def _pump_queue(self) -> None:
+        """
+        Tourne dans un thread du process PARENT (donc peut utiliser root.after
+        en toute sécurité comme avant). Lit la queue alimentée par le sous-process
+        et relaie les lignes de sortie + le code de fin, exactement comme le
+        faisait l'itération sur self.process.stdout puis self.process.wait().
+        """
+        return_code = None
+        try:
+            while True:
+                kind, payload = self.stdout_queue.get()
+                if kind == "line":
+                    self.root.after(0, self._append_output, payload)
+                elif kind == "done":
+                    return_code = payload
+                    break
+        except Exception as exc:
+            self.root.after(0, self._append_output, f"\nERROR: {exc}\n")
+            return_code = -1
+        finally:
+            # Attendre que le sous-process se termine réellement (équivalent .wait())
+            if self.process is not None:
+                self.process.join()
+            self.root.after(0, self._finish_run, return_code if return_code is not None else -1)
+ 
+    def stop_program(self) -> None:
+        if self.process is not None:
+            self.process.terminate()  # équivalent de Popen.terminate(), tue le sous-process
+            self._append_output("\nTermination requested by the user.\n")
+            self.status_var.set("Stopping...")
+            self.stop_button.configure(state="disabled")
+ 
 
     def close_window(self) -> None:
         if self.process is not None:
