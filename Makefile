@@ -22,8 +22,8 @@ run_build:
 
 clean :
 	rm -rf build/tmp/PepSynth_Analyzer/
-	rm -f build/executable/PepSynth_Analyzer 
-	rm -f build/spec/PepSynth_Analyzer.spec
+	#rm -f build/executable/PepSynth_Analyzer 
+	#rm -f build/spec/PepSynth_Analyzer.spec
 
 
 

@@ -80,7 +80,6 @@ class App:
         subtitle.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 10))
 
         row = 2
-        #row = self._add_file_row(container, row, "CLI script", self.cli_script_var, self._browse_cli_script, file_mode=True)
         row = self._add_file_row(container, row, "Parent input directory", self.parent_dir_var, self._browse_parent_dir)
         row = self._add_labeled_entry(container, row, "Channel filename", self.channel_file_var)
         row = self._add_file_row(container, row, "Output directory", self.output_dir_var, self._browse_output_dir)
@@ -132,6 +131,7 @@ class App:
         adv_row = self._add_labeled_entry(self.advanced_frame, adv_row, "Combined CSV file name", self.combined_name_var, left_pad=8, right_pad=8)
         adv_row = self._add_labeled_entry(self.advanced_frame, adv_row, "Summary CSV file name", self.summary_name_var, left_pad=8, right_pad=8)
 
+
         ttk.Label(self.advanced_frame, text="Output point count").grid(
             row=adv_row, column=0, sticky="w", pady=4, padx=(8, 8)
         )
@@ -143,6 +143,8 @@ class App:
         )
         adv_row += 1
 
+
+        #adv_row = self._add_file_row(self.advanced_frame, adv_row, "CLI script", self.cli_script_var, self._browse_cli_script, file_mode=True)
         ttk.Label(self.advanced_frame, text="Command preview").grid(
             row=adv_row, column=0, columnspan=3, sticky="w", padx=(8, 8)
         )
@@ -209,7 +211,7 @@ class App:
 
     def _bind_updates(self) -> None:
         for variable in (
-            self.cli_script_var,
+            #self.cli_script_var,
             self.parent_dir_var,
             self.channel_file_var,
             self.output_dir_var,
@@ -250,14 +252,14 @@ class App:
         ttk.Button(parent, text="Browse...", command=browse_command).grid(row=row, column=2, sticky="ew", pady=4, padx=(8, 0))
         return row + 1
 
-    #def _browse_cli_script(self) -> None:
-    #    path = filedialog.askopenfilename(
-    #        title="Select the CLI Python script",
-    #        filetypes=[("Python files", "*.py"), ("All files", "*.*")],
-    #        initialdir=str(SCRIPT_DIR),
-    #    )
-    #    if path:
-    #        self.cli_script_var.set(path)
+    def _browse_cli_script(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Select the CLI Python script",
+            filetypes=[("Python files", "*.py"), ("All files", "*.*")],
+            initialdir=str(SCRIPT_DIR),
+        )
+        if path:
+            self.cli_script_var.set(path)
 
     def _browse_parent_dir(self) -> None:
         path = filedialog.askdirectory(title="Select the parent input directory")
@@ -435,10 +437,10 @@ class App:
         return value
 
     def validate_inputs(self) -> bool:
-        cli_script = Path(self.cli_script_var.get().strip())
-        if not cli_script.is_file():
-            messagebox.showerror("Missing CLI script", "Please select a valid CLI Python script.")
-            return False
+       # cli_script = Path(self.cli_script_var.get().strip())
+       # if not cli_script.is_file():
+       #     messagebox.showerror("Missing CLI script", "Please select a valid CLI Python script.")
+       #     return False
 
         parent_dir = Path(self.parent_dir_var.get().strip())
         if not parent_dir.is_dir():
