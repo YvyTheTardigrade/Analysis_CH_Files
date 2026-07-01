@@ -8,7 +8,7 @@ test:
 	PYTHONPATH=. pytest	
 
 
-build: clean
+build: 
 	pyinstaller --onefile --windowed --name "PepSynth_Analyzer" \
 	--paths=src                      \
     --distpath "./build/executable/" \
