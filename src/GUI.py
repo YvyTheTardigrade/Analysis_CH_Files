@@ -19,7 +19,7 @@ from tkinter.scrolledtext import ScrolledText
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "Main_Process.py" #"sequence_channel_to_csv_and_combined.py" #  
+#DEFAULT_CLI_SCRIPT = SCRIPT_DIR / "Main_Process.py" #"sequence_channel_to_csv_and_combined.py" #  
 
 
 
@@ -44,14 +44,14 @@ class App:
         self.export_summary_plot_var = tk.BooleanVar(value=True)
         self.export_detail_plots_var = tk.BooleanVar(value=False)
         self.show_summary_plot_var = tk.BooleanVar(value=True)
-        self.cli_script_var = tk.StringVar(value=str(DEFAULT_CLI_SCRIPT))
+        #self.cli_script_var = tk.StringVar(value=str(DEFAULT_CLI_SCRIPT))
 
         # --- Etat du panneau "Advanced parameters" ---
         self.advanced_visible = False
 
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
-        self._bind_updates()
+        #self._bind_updates()
         self.refresh_preview_file_list()
         self._set_header_preview_text(self.header_info_var.get())
 
@@ -145,24 +145,24 @@ class App:
 
 
         #adv_row = self._add_file_row(self.advanced_frame, adv_row, "CLI script", self.cli_script_var, self._browse_cli_script, file_mode=True)
-        ttk.Label(self.advanced_frame, text="Command preview").grid(
-            row=adv_row, column=0, columnspan=3, sticky="w", padx=(8, 8)
-        )
-        adv_row += 1
-        self.command_preview = ScrolledText(self.advanced_frame, height=5, wrap="word")
-        self.command_preview.grid(row=adv_row, column=0, columnspan=3, sticky="nsew", pady=(0, 8), padx=8)
-        self.command_preview.configure(state="disabled")
-        adv_row += 1
+        #ttk.Label(self.advanced_frame, text="Command preview").grid(
+        #    row=adv_row, column=0, columnspan=3, sticky="w", padx=(8, 8)
+        #)
+        #adv_row += 1
+        #self.command_preview = ScrolledText(self.advanced_frame, height=5, wrap="word")
+        #self.command_preview.grid(row=adv_row, column=0, columnspan=3, sticky="nsew", pady=(0, 8), padx=8)
+        #self.command_preview.configure(state="disabled")
+        #adv_row += 1
 
         # Le panneau avancé n'est PAS placé ici (pas de .grid) -> masqué par défaut
 
         options_frame = ttk.LabelFrame(container, text="Outputs")
         options_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(8, 8))
         options_frame.columnconfigure(0, weight=1)
-        ttk.Checkbutton(options_frame, text="CSV files", variable=self.export_csv_var, command=self.update_command_preview).grid(row=0, column=0, sticky="w", padx=8, pady=4)
-        ttk.Checkbutton(options_frame, text="Summary plot (plots/summary/combined_plot.png)", variable=self.export_summary_plot_var, command=self.update_command_preview).grid(row=1, column=0, sticky="w", padx=8, pady=4)
-        ttk.Checkbutton(options_frame, text="All detail plots (plots/detail)", variable=self.export_detail_plots_var, command=self.update_command_preview).grid(row=2, column=0, sticky="w", padx=8, pady=4)
-        ttk.Checkbutton(options_frame, text="Show summary plot at end", variable=self.show_summary_plot_var, command=self.update_command_preview).grid(row=3, column=0, sticky="w", padx=8, pady=4)
+        ttk.Checkbutton(options_frame, text="CSV files", variable=self.export_csv_var).grid(row=0, column=0, sticky="w", padx=8, pady=4)
+        ttk.Checkbutton(options_frame, text="Summary plot (plots/summary/combined_plot.png)", variable=self.export_summary_plot_var).grid(row=1, column=0, sticky="w", padx=8, pady=4)
+        ttk.Checkbutton(options_frame, text="All detail plots (plots/detail)", variable=self.export_detail_plots_var).grid(row=2, column=0, sticky="w", padx=8, pady=4)
+        ttk.Checkbutton(options_frame, text="Show summary plot at end", variable=self.show_summary_plot_var).grid(row=3, column=0, sticky="w", padx=8, pady=4)
         row += 1
 
         button_row = ttk.Frame(container)
@@ -192,7 +192,7 @@ class App:
         row += 1
 
         container.rowconfigure(row - 1, weight=1)
-        self.update_command_preview()
+        #self.update_command_preview()
 
     def _toggle_advanced_panel(self) -> None:
         """Affiche ou masque le panneau des paramètres avancés."""
@@ -209,21 +209,21 @@ class App:
             self.advanced_frame.grid_remove()
             self.advanced_toggle_button.configure(text="Show advanced parameters \u25BC")
 
-    def _bind_updates(self) -> None:
-        for variable in (
-            #self.cli_script_var,
-            self.parent_dir_var,
-            self.channel_file_var,
-            self.output_dir_var,
-            self.combined_name_var,
-            self.summary_name_var,
-        ):
-            variable.trace_add("write", lambda *_: self._on_inputs_changed())
-        self.export_csv_var.trace_add("write", lambda *_: self.update_command_preview())
-        self.export_summary_plot_var.trace_add("write", lambda *_: self.update_command_preview())
-        self.export_detail_plots_var.trace_add("write", lambda *_: self.update_command_preview())
-        self.show_summary_plot_var.trace_add("write", lambda *_: self.update_command_preview())
-        self.preview_file_var.trace_add("write", lambda *_: self.update_command_preview())
+    #def _bind_updates(self) -> None:
+    #    for variable in (
+    #        #self.cli_script_var,
+    #        self.parent_dir_var,
+    #        self.channel_file_var,
+    #        self.output_dir_var,
+    #        self.combined_name_var,
+    #        self.summary_name_var,
+    #    ):
+    #        variable.trace_add("write", lambda *_: self._on_inputs_changed())
+    #    self.export_csv_var.trace_add("write", lambda *_: self.update_command_preview())
+    #    self.export_summary_plot_var.trace_add("write", lambda *_: self.update_command_preview())
+    #    self.export_detail_plots_var.trace_add("write", lambda *_: self.update_command_preview())
+    #    self.show_summary_plot_var.trace_add("write", lambda *_: self.update_command_preview())
+    #    self.preview_file_var.trace_add("write", lambda *_: self.update_command_preview())
 
     def _on_inputs_changed(self) -> None:
         parent_text = self.parent_dir_var.get().strip()
@@ -231,7 +231,7 @@ class App:
             self.output_dir_var.set(str(Path(parent_text) / "Analysis"))
             return
         self.refresh_preview_file_list()
-        self.update_command_preview()
+        #self.update_command_preview()
 
     def _add_labeled_entry(
         self,
@@ -252,14 +252,14 @@ class App:
         ttk.Button(parent, text="Browse...", command=browse_command).grid(row=row, column=2, sticky="ew", pady=4, padx=(8, 0))
         return row + 1
 
-    def _browse_cli_script(self) -> None:
-        path = filedialog.askopenfilename(
-            title="Select the CLI Python script",
-            filetypes=[("Python files", "*.py"), ("All files", "*.*")],
-            initialdir=str(SCRIPT_DIR),
-        )
-        if path:
-            self.cli_script_var.set(path)
+    #def _browse_cli_script(self) -> None:
+    #    path = filedialog.askopenfilename(
+    #        title="Select the CLI Python script",
+    #        filetypes=[("Python files", "*.py"), ("All files", "*.*")],
+    #        initialdir=str(SCRIPT_DIR),
+    #    )
+    #    if path:
+    #        self.cli_script_var.set(path)
 
     def _browse_parent_dir(self) -> None:
         path = filedialog.askdirectory(title="Select the parent input directory")
@@ -348,7 +348,7 @@ class App:
             self.points_var.set("Auto from .ch header")
             self.header_info_var.set("No preview .ch file found yet. Select a valid parent directory containing numbered -Pip_ .D folders.")
             self._set_header_preview_text(self.header_info_var.get())
-            self.update_command_preview()
+            #self.update_command_preview()
             return
 
         try:
@@ -383,36 +383,36 @@ class App:
             self.header_info_var.set(f"Could not read header preview: {exc}")
             self._set_header_preview_text(self.header_info_var.get())
 
-        self.update_command_preview()
+        #self.update_command_preview()
 
-    def _build_command(self) -> list[str]:
-        cmd = [
-            sys.executable,
-            self.cli_script_var.get().strip(),
-            self.parent_dir_var.get().strip(),
-            self.channel_file_var.get().strip(),
-            "--output-dir",
-            self.output_dir_var.get().strip(),
-            "--combined-name",
-            self.combined_name_var.get().strip(),
-            "--summary-name",
-            self.summary_name_var.get().strip(),
-        ]
+    #def _build_command(self) -> list[str]:
+    #    cmd = [
+    #        sys.executable,
+    #        self.cli_script_var.get().strip(),
+    #        self.parent_dir_var.get().strip(),
+    #        self.channel_file_var.get().strip(),
+    #        "--output-dir",
+    #        self.output_dir_var.get().strip(),
+    #        "--combined-name",
+    #        self.combined_name_var.get().strip(),
+    #        "--summary-name",
+    #        self.summary_name_var.get().strip(),
+    #    ]
 
-        points_text = self.points_var.get().strip()
-        if points_text and points_text.isdigit():
-            cmd.extend(["--points", points_text])
+    #    points_text = self.points_var.get().strip()
+    #    if points_text and points_text.isdigit():
+    #        cmd.extend(["--points", points_text])
 
-        if self.export_csv_var.get():
-            cmd.append("--export-csv")
-        if self.export_summary_plot_var.get():
-            cmd.append("--export-summary-plot")
-        if self.export_detail_plots_var.get():
-            cmd.append("--export-detail-plots")
-        if self.show_summary_plot_var.get():
-            cmd.append("--show-summary-plot")
+    #    if self.export_csv_var.get():
+    #        cmd.append("--export-csv")
+    #    if self.export_summary_plot_var.get():
+    #        cmd.append("--export-summary-plot")
+    #    if self.export_detail_plots_var.get():
+    #        cmd.append("--export-detail-plots")
+    #    if self.show_summary_plot_var.get():
+    #        cmd.append("--show-summary-plot")
 
-        return cmd
+    #    return cmd
 
     def _set_header_preview_text(self, text: str) -> None:
         self.header_preview_box.configure(state="normal")
@@ -420,13 +420,13 @@ class App:
         self.header_preview_box.insert(tk.END, text)
         self.header_preview_box.configure(state="disabled")
 
-    def update_command_preview(self) -> None:
-        cmd = self._build_command()
-        preview = " ".join(self._quote_if_needed(part) for part in cmd)
-        self.command_preview.configure(state="normal")
-        self.command_preview.delete("1.0", tk.END)
-        self.command_preview.insert(tk.END, preview)
-        self.command_preview.configure(state="disabled")
+    #def update_command_preview(self) -> None:
+    #    cmd = self._build_command()
+    #    preview = " ".join(self._quote_if_needed(part) for part in cmd)
+    #    self.command_preview.configure(state="normal")
+    #    self.command_preview.delete("1.0", tk.END)
+    #    self.command_preview.insert(tk.END, preview)
+    #    self.command_preview.configure(state="disabled")
 
     @staticmethod
     def _quote_if_needed(value: str) -> str:
@@ -463,59 +463,6 @@ class App:
 
         return True
 
-    """
-    def run_program(self) -> None:
-        if not self.validate_inputs():
-            return
-        if self.process is not None:
-            messagebox.showinfo("Already running", "The program is already running.")
-            return
-
-        self.refresh_header_preview()
-        cmd = self._build_command()
-        self.output_box.delete("1.0", tk.END)
-        self._append_output("Running command:\n")
-        self._append_output(" ".join(self._quote_if_needed(part) for part in cmd) + "\n\n")
-
-        self.run_button.configure(state="disabled")
-        self.stop_button.configure(state="normal")
-        self.status_var.set("Running...")
-
-        thread = threading.Thread(target=self._run_subprocess, args=(cmd,), daemon=True)
-        thread.start()
-        
-
-    def _run_subprocess(self, cmd: list[str]) -> None:
-        try:
-            
-            self.process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-            assert self.process.stdout is not None
-            for line in self.process.stdout:
-                self.root.after(0, self._append_output, line)
-            return_code = self.process.wait()
-            self.root.after(0, self._finish_run, return_code)
-            
-            #Main_Process.main(Path(self.parent_dir_var.get()), self.channel_file_var.get(), Path(self.output_dir_var.get()),  
-            #                  None, int(self.points_var.get().strip()), None, True, self.export_csv_var.get(), 
-            #                  self.export_summary_plot_var.get(), self.export_detail_plots_var.get(), self.show_summary_plot_var.get(), 
-            #                  self.combined_name_var.get(), self.summary_name_var.get(), 0.0)
-        except Exception as exc:
-            self.root.after(0, self._append_output, f"\nERROR: {exc}\n")
-            self.root.after(0, self._finish_run, -1)
-
-    def stop_program(self) -> None:
-        if self.process is not None:
-            self.process.terminate()
-            self._append_output("\nTermination requested by the user.\n")
-            self.status_var.set("Stopping...")
-            self.stop_button.configure(state="disabled")
-    """
 
     def run_program(self) -> None:
         if not self.validate_inputs():
@@ -525,10 +472,10 @@ class App:
             return
  
         self.refresh_header_preview()
-        cmd = self._build_command()
+        #cmd = self._build_command()
         self.output_box.delete("1.0", tk.END)
-        self._append_output("Running command:\n")
-        self._append_output(" ".join(self._quote_if_needed(part) for part in cmd) + "\n\n")
+        self._append_output("Running main process:\n")
+        #self._append_output(" ".join(self._quote_if_needed(part) for part in cmd) + "\n\n")
  
         self.run_button.configure(state="disabled")
         self.stop_button.configure(state="normal")
