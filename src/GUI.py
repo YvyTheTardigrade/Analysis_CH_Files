@@ -33,7 +33,7 @@ class App:
         self.process: mp.Process | None = None
 
         self.parent_dir_var = tk.StringVar()
-        self.channel_file_var = tk.StringVar(value="DAD1D.ch")
+        self.channel_file_var = tk.StringVar(value="DAD1A.ch")
         self.output_dir_var = tk.StringVar()
         self.preview_file_var = tk.StringVar()
         self.combined_name_var = tk.StringVar(value="combined.csv")

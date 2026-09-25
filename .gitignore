@@ -5,9 +5,13 @@ TODO.txt
 # Virtual Env 
 Pipfile*
 
+# src folder
+src/__pycache__/
 
 # output folder 
 example_data/Analysis/
+example_data/plots/
+example_data/csv/
 
 # build folder 
 build/executable/*

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import GUI  
 import tkinter as tk
 import multiprocessing as mp
